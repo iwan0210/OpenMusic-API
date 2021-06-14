@@ -1,21 +1,22 @@
-const mapDBtoModel = ({
+/* eslint-disable */
+const mapDBToModel = ({
     id,
     title,
     year,
     performer,
     genre,
     duration,
-    insertedAt,
-    updatedAt
-}) = ({
+    inserted_at,
+    updated_at
+}) => ({
     id,
     title,
     year,
     performer,
     genre,
     duration,
-    inserted_at: insertedAt,
-    updated_at: updatedAt
+    insertedAt: inserted_at,
+    updatedAt: updated_at
 })
 
-module.exports = mapDBtoModel
+module.exports = mapDBToModel
