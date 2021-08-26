@@ -17,6 +17,6 @@ module.exports = {
             validator
         )
 
-        server.routes(routes(authenticationsHandler))
+        server.route(routes(authenticationsHandler))
     }
 }

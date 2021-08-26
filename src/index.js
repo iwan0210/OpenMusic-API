@@ -13,16 +13,33 @@ const users = require('./api/users')
 const UsersService = require('./services/postgres/UsersService')
 const UsersValidator = require('./validator/users')
 
+// playlist
+const playlists = require('./api/playlists')
+const PlaylistsService = require('./services/postgres/PlaylistsService')
+const PlaylistsValidator = require('./validator/playlists')
+
 // authentications
 const authentications = require('./api/authentications')
 const AuthenticationsService = require('./services/postgres/AuthenticationsService')
 const TokenManager = require('./tokenize/TokenManager')
-const AuthenticationsValidator = require('./validator/authentications');
+const AuthenticationsValidator = require('./validator/authentications')
+
+// collaborations
+const collaborations = require('./api/collaborations')
+const CollaborationsService = require('./services/postgres/CollaborationsService')
+const CollaborationsValidator = require('./validator/collaborations')
+
+// exports
+const _exports = require('./api/exports')
+const ProducerService = require('./services/rabbitmq/ProducerService')
+const ExportsValidator = require('./validator/exports');
 
 (async () => {
     const songsService = new SongsService()
     const usersService = new UsersService()
+    const collaborationsService = new CollaborationsService()
     const authenticationsService = new AuthenticationsService()
+    const playlistsService = new PlaylistsService(collaborationsService)
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
@@ -50,7 +67,7 @@ const AuthenticationsValidator = require('./validator/authentications');
         validate: (artifacts) => ({
             isValid: true,
             credentials: {
-                id: artifacts.decode.payload.id
+                id: artifacts.decoded.payload.id
             }
         })
     })
@@ -77,6 +94,28 @@ const AuthenticationsValidator = require('./validator/authentications');
                 usersService,
                 tokenManager: TokenManager,
                 validator: AuthenticationsValidator
+            }
+        },
+        {
+            plugin: collaborations,
+            options: {
+                collaborationsService,
+                playlistsService,
+                validator: CollaborationsValidator
+            }
+        },
+        {
+            plugin: playlists,
+            options: {
+                service: playlistsService,
+                validator: PlaylistsValidator
+            }
+        },
+        {
+            plugin: _exports,
+            options: {
+                service: ProducerService,
+                validator: ExportsValidator
             }
         }
     ])
