@@ -2,6 +2,8 @@ require('dotenv').config()
 
 const Hapi = require('@hapi/hapi')
 const Jwt = require('@hapi/jwt')
+const Inert = require('@hapi/inert')
+const path = require('path')
 
 // songs
 const songs = require('./api/songs')
@@ -32,7 +34,12 @@ const CollaborationsValidator = require('./validator/collaborations')
 // exports
 const _exports = require('./api/exports')
 const ProducerService = require('./services/rabbitmq/ProducerService')
-const ExportsValidator = require('./validator/exports');
+const ExportsValidator = require('./validator/exports')
+
+// uploads
+const uploads = require('./api/uploads')
+const StorageService = require('./services/storage/StorageService')
+const UploadsValidator = require('./validator/uploads');
 
 (async () => {
     const songsService = new SongsService()
@@ -40,6 +47,7 @@ const ExportsValidator = require('./validator/exports');
     const collaborationsService = new CollaborationsService()
     const authenticationsService = new AuthenticationsService()
     const playlistsService = new PlaylistsService(collaborationsService)
+    const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/pictures'))
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
@@ -53,6 +61,9 @@ const ExportsValidator = require('./validator/exports');
     await server.register([
         {
             plugin: Jwt
+        },
+        {
+            plugin: Inert
         }
     ])
 
@@ -114,8 +125,16 @@ const ExportsValidator = require('./validator/exports');
         {
             plugin: _exports,
             options: {
-                service: ProducerService,
+                ProducerService,
+                playlistsService,
                 validator: ExportsValidator
+            }
+        },
+        {
+            plugin: uploads,
+            options: {
+                service: storageService,
+                validator: UploadsValidator
             }
         }
     ])
