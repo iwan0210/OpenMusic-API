@@ -42,7 +42,10 @@ const StorageService = require('./services/storage/StorageService')
 const UploadsValidator = require('./validator/uploads')
 
 // cache
-const CacheService = require('./services/redis/CacheService');
+const CacheService = require('./services/redis/CacheService')
+
+// ClientError
+const ClientError = require('./exceptions/ClientError');
 
 (async () => {
     const cacheService = new CacheService()
@@ -142,6 +145,31 @@ const CacheService = require('./services/redis/CacheService');
             }
         }
     ])
+
+    server.ext('onPreResponse', (request, h) => {
+        const { response } = request
+
+        if (response instanceof ClientError) {
+            const newResponse = h.response({
+                status: 'fail',
+                message: response.message
+            })
+            newResponse.code(response.statusCode)
+            return newResponse
+        }
+
+        // if (response instanceof Error) {
+        //     const newResponse = h.response({
+        //         status: 'error',
+        //         message: 'Maaf, terjadi kegagalan pada server kami.'
+        //     })
+        //     newResponse.code(500)
+        //     console.log(response)
+        //     return newResponse
+        // }
+
+        return response.continue || response
+    })
 
     await server.start()
     console.log(`Server berjalan pada ${server.info.uri}`)

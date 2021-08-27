@@ -81,7 +81,7 @@ class PlaylistsService {
 
             const result = await this._pool.query(query)
 
-            await this._cacheService.set(`playlistSongs:${playlistId}`)
+            await this._cacheService.set(`playlistSongs:${playlistId}`, JSON.stringify(result.rows))
 
             return result.rows
         }
@@ -104,7 +104,7 @@ class PlaylistsService {
 
     async verifyPlaylistOwner (id, owner) {
         const query = {
-            text: 'SELECT * FROM playlists WHERE id = $1',
+            text: 'SELECT owner FROM playlists WHERE id = $1',
             values: [id]
         }
 
