@@ -158,16 +158,6 @@ const ClientError = require('./exceptions/ClientError');
             return newResponse
         }
 
-        // if (response instanceof Error) {
-        //     const newResponse = h.response({
-        //         status: 'error',
-        //         message: 'Maaf, terjadi kegagalan pada server kami.'
-        //     })
-        //     newResponse.code(500)
-        //     console.log(response)
-        //     return newResponse
-        // }
-
         return response.continue || response
     })
 
